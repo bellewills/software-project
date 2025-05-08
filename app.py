@@ -1,8 +1,15 @@
 from flask import Flask, render_template, jsonify, request
 from pet import get_pet_emotion, get_pet, revive_pet
 
+app = Flask(
+    __name__,
+    template_folder='templates',     # Flask finds index.html
+    static_folder='static'          #Static images work
+)
 
-app = Flask(__name__)
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 @app.route("/action/name", methods=["POST"])
 def rename_pet():
@@ -12,6 +19,7 @@ def rename_pet():
     if new_name:
         pet.rename(new_name)
     return '', 204
+
 
 @app.route("/action/revive")
 def revive_pet_route():
@@ -46,15 +54,12 @@ def pet_pet():
     pet.update_state()
     return '', 204
 
-@app.route("/")
-def home():
-    return render_template("index.html")
 
 @app.route("/pet_state")
 def pet_state():
     pet = get_pet()
     pet_emotion = pet.state.name.lower()
-    pet_name = pet.name  # <-- Get the current name
+    pet_name = pet.name  #Get the current name
 
     emotion_to_image = {
         "happy": "pet_happy.png",

@@ -1,277 +1,287 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Virtual Pet</title>
-    <style>
-      html, body {
-          margin: 0;
-          padding: 0;
-          height: 100%;
-          background: linear-gradient(to bottom, #fdf6e3, #ffe4e1);
-          font-family: 'Courier New', monospace;
-      }
+  <title>My Virtual Pet</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: linear-gradient(to bottom, #fdf6e3, #ffe4e1);
+      font-family: 'Courier New', monospace;
+    }
 
-      body {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-      }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-      h1 {
-          font-size: 2rem;
-          margin-bottom: 1.5rem;
-      }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
 
-      #petImage {
-          width: 200px;
-          image-rendering: pixelated;
-      }
+    #petImage {
+      width: 200px;
+      image-rendering: pixelated;
+    }
 
-      .bounce {
-          animation: bounce 1s infinite alternate ease-in-out;
-      }
+    .bounce {
+      animation: bounce 1s infinite alternate ease-in-out;
+    }
 
-      @keyframes bounce {
-          from {
-              transform: translateY(0);
-          }
-          to {
-              transform: translateY(-15px);
-          }
-      }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-15px); }
+    }
 
-      #emotion {
-          font-weight: bold;
-          text-transform: uppercase;
-          color: #d76d77;
-      }
+    #emotion {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #d76d77;
+    }
 
-      #sparkles {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          pointer-events: none;
-      }
+    #sparkles {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
 
-      .sparkle {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          background: gold;
-          border-radius: 50%;
-          animation: sparkleAnim 1s linear forwards;
-      }
+    .sparkle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: gold;
+      border-radius: 50%;
+      animation: sparkleAnim 1s linear forwards;
+    }
 
-      @keyframes sparkleAnim {
-          0% {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-          }
-          100% {
-              opacity: 0;
-              transform: translateY(-50px) scale(1.5);
-          }
-      }
+    @keyframes sparkleAnim {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+    }
 
-      #actionButtons {
-          margin-top: 20px;
-      }
+    #actionButtons {
+      margin-top: 20px;
+    }
 
-      #actionButtons button {
-          margin: 0 10px;
-          padding: 10px 15px;
-          font-size: 1rem;
-          border: none;
-          border-radius: 10px;
-          background-color: #ff9a9e;
-          color: white;
-          cursor: pointer;
-      }
+    #actionButtons button {
+      margin: 0 10px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #ff9a9e;
+      color: white;
+      cursor: pointer;
+    }
 
-      #actionButtons button:hover {
-          background-color: #f67280;
-      }
-    </style>
+    #actionButtons button:hover {
+      background-color: #f67280;
+    }
+
+    @keyframes floatHand {
+    0%   { transform: translateY(0); opacity: 0.6; }
+    50%  { transform: translateY(-10px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0.6; }
+    }
+
+  </style>
 </head>
 <body>
-<!-- Pet Name Modal -->
-<div id="nameModal" style="position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: rgba(249, 187, 208, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10;">
-<div id="welcomeBack" style="display: none;">
-  <h2>Welcome back! Continue with <span id="savedName"></span>?</h2>
-  <button onclick="hideModal()">Continue</button>
-  <button onclick="showRename()">Adopt New Pet 🐾</button>
-</div>
 
-<div id="renameForm">
-  <h2>Name your pet:</h2>
-  <input type="text" id="nameInput" placeholder="e.g., Fluffy" />
-  <button onclick="submitName()">Start</button>
-</div>
-<button onclick="showNameModal()">Rename ✏️</button>
-<h1><span id="petName">Your pet</span> is feeling: <span id="emotion">loading...</span></h1>
-    <img id="petImage" src="/static/pet_happy.PNG" alt="Pet Image" class="">
-    <div id="sparkles"></div>
+  <!-- Pet Name Modal -->
+  <div id="nameModal" style="position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: rgba(249, 187, 208, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10;">
+    <div id="welcomeBack" style="display: none;">
+      <h2>Welcome back! Continue with <span id="savedName"></span>?</h2>
+      <button onclick="hideModal()">Continue</button>
+      <button onclick="showRename()">Adopt New Pet 🐾</button>
+    </div>
 
-    <div id="actionButtons" style="display: none;"></div>
+    <div id="renameForm">
+      <h2>Name your pet:</h2>
+      <input type="text" id="nameInput" placeholder="e.g., Fluffy" />
+      <button onclick="submitName()">Start</button>
+    </div>
+  </div> <!-- ✅ Properly closed modal -->
 
-    <script>
-      let sparkleInterval = null;
-      let petName = "Your pet";
-    
-      // Show the modal and auto-focus the input.
-      function showNameModal() {
-        const modal = document.getElementById("nameModal");
-        const input = document.getElementById("nameInput");
-        input.value = ""; // Clear previous input
-        modal.style.display = "flex"; // Show modal
-        input.focus();
-      }
-    
-      // Hide the modal and mark that the pet name has been confirmed.
-      function hideModal() {
-        document.getElementById("nameModal").style.display = "none";
-        localStorage.setItem("petNameConfirmed", "true");
-      }
-    
-      // Show the rename form and clear the confirmation flag.
-      async function showRename() {
-        await fetch('/action/revive'); // Optionally revive pet when adopting new pet.
-        localStorage.removeItem("petNameConfirmed");
-        document.getElementById("renameForm").style.display = "block";
-        document.getElementById("welcomeBack").style.display = "none";
-        showNameModal();
-      }
-    
-      // Submit the new name, update the heading, and send it to the backend.
-      async function submitName() {
-        const input = document.getElementById("nameInput");
-        petName = input.value.trim() || "Your pet";
-        document.getElementById("petName").textContent = petName;
-        document.getElementById("nameModal").style.display = "none";
-        localStorage.setItem("petNameConfirmed", "true");
-        await fetch('/action/name', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: petName })
-        });
-      }
-    
-      // Poll and update the pet state, image, and name.
-      async function updatePetState() {
-        const res = await fetch('/pet_state');
-        const data = await res.json();
-    
-        const emotionText = document.getElementById("emotion");
-        const petImage = document.getElementById("petImage");
-        const actionButtons = document.getElementById("actionButtons");
-        const nameText = document.getElementById("petName");
-    
-        // Update emotion and image.
-        emotionText.textContent = data.emotion;
-        petImage.src = data.image;
-    
-        // Update and display the pet name.
-        if (data.name) {
-          petName = data.name;
-          nameText.textContent = petName;
-        }
-    
-        // Modal logic:
-        if (data.name === "Your pet" && !localStorage.getItem("petNameConfirmed")) {
-          // If still default and not confirmed, show rename form.
-          document.getElementById("renameForm").style.display = "block";
-          document.getElementById("welcomeBack").style.display = "none";
-          document.getElementById("nameModal").style.display = "flex";
-        } else if (data.name && data.name !== "Your pet" && !localStorage.getItem("petNameConfirmed")) {
-          // If a name exists but hasn't been confirmed, show welcome back options.
-          document.getElementById("savedName").textContent = data.name;
-          document.getElementById("renameForm").style.display = "none";
-          document.getElementById("welcomeBack").style.display = "block";
-          document.getElementById("nameModal").style.display = "flex";
-        } else {
-          // Otherwise, hide the modal.
-          document.getElementById("nameModal").style.display = "none";
-        }
-    
-        // Sparkles and bounce effect for happy state.
-        if (data.emotion === "happy") {
-          petImage.classList.add("bounce");
-          if (!sparkleInterval) sparkleInterval = setInterval(createSparkle, 500);
-        } else {
-          petImage.classList.remove("bounce");
-          clearInterval(sparkleInterval);
-          sparkleInterval = null;
-        }
-    
-        // Suggestions pop-up based on pet emotion.
-        if (data.emotion === "sick") {
-          actionButtons.style.display = "block";
-          actionButtons.innerHTML = `
-              <p>${petName} is sick. Try one of the following:</p>
-              <button onclick="sendHeal()">Give Medicine 💊</button>
-              <button onclick="sendPet()">Pet It 🤚</button>
-          `;
-        } else if (data.emotion === "lonely") {
-          actionButtons.style.display = "block";
-          actionButtons.innerHTML = `
-              <p>${petName} is lonely. Try petting it:</p>
-              <button onclick="sendPet()">Pet It 🤚</button>
-          `;
-        } else if (data.emotion === "dead") {
-          actionButtons.style.display = "block";
-          actionButtons.innerHTML = `
-              <p>${petName} has passed away. 💀</p>
-              <button onclick="revivePet()">Start Over 🔁</button>
-          `;
-        } else {
-          actionButtons.style.display = "none";
-        }
-      }
-    
-      // Create a sparkle element.
-      function createSparkle() {
-        const sparkle = document.createElement("div");
-        sparkle.classList.add("sparkle");
-        sparkle.style.left = `${Math.random() * 200 - 100}px`;
-        sparkle.style.top = `${Math.random() * -30}px`;
-        document.getElementById("sparkles").appendChild(sparkle);
-        setTimeout(() => sparkle.remove(), 1000);
-      }
-    
-      async function sendHeal() {
-        await fetch('/action/heal');
-        updatePetState();
-      }
-    
-      async function sendPet() {
-        await fetch('/action/pet');
-        updatePetState();
-      }
-    
-      async function revivePet() {
-        await fetch('/action/revive');
-        // After reviving, show the name modal so the user can adopt a new pet.
-        showNameModal();
-      }
-    
-      // Simulate interaction via keys + mouse.
-      document.addEventListener("keydown", (e) => {
-        const key = e.key.toLowerCase();
-        if (key === "h") sendHeal();              // Heal
-        if (key === "f") fetch('/action/feed');   // Feed
-        if (key === "t") fetch('/action/temp');   // Fan/cool
+  <!-- Main UI -->
+  <button onclick="showNameModal()">Rename ✏️</button>
+  <h1><span id="petName">Your pet</span> is feeling: <span id="emotion">loading...</span></h1>
+  <img id="petImage" src="/static/pet_happy.png" alt="Pet Image">
+  <div id="sparkles"></div>
+  <div id="actionButtons" style="display: none;"></div>
+
+  <script>
+    let sparkleInterval = null;
+    let petName = "Your pet";
+
+    function showNameModal() {
+      const modal = document.getElementById("nameModal");
+      const input = document.getElementById("nameInput");
+      input.value = "";
+      modal.style.display = "flex";
+      input.focus();
+    }
+
+    function hideModal() {
+  localStorage.setItem("petNameConfirmed", "true");
+  document.getElementById("nameModal").style.display = "none";
+}
+
+    async function showRename() {
+      await fetch('/action/revive');
+      localStorage.removeItem("petNameConfirmed");
+      document.getElementById("renameForm").style.display = "block";
+      document.getElementById("welcomeBack").style.display = "none";
+      showNameModal();
+    }
+
+    async function submitName() {
+      const input = document.getElementById("nameInput");
+      petName = input.value.trim() || "Your pet";
+      document.getElementById("petName").textContent = petName;
+      document.getElementById("nameModal").style.display = "none";
+      localStorage.setItem("petNameConfirmed", "true");
+
+      await fetch('/action/name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: petName })
       });
-      document.getElementById("petImage").addEventListener("mouseover", sendPet);
-    
-      // Place helper functions just before the polling starts.
-      setInterval(updatePetState, 5000);
+    }
+
+    async function updatePetState() {
+  const res = await fetch('/pet_state');
+  const data = await res.json();
+
+  const emotionText = document.getElementById("emotion");
+  const petImage = document.getElementById("petImage");
+  const actionButtons = document.getElementById("actionButtons");
+  const nameText = document.getElementById("petName");
+
+  emotionText.textContent = data.emotion;
+  petImage.src = data.image;
+
+  if (data.name) {
+    petName = data.name;
+    nameText.textContent = petName;
+  }
+
+  const hasSeenWelcome = sessionStorage.getItem("seenWelcome");
+
+  if (!hasSeenWelcome && data.name && data.name !== "Your pet") {
+    // Show welcome back modal once per session
+    document.getElementById("savedName").textContent = data.name;
+    document.getElementById("renameForm").style.display = "none";
+    document.getElementById("welcomeBack").style.display = "block";
+    document.getElementById("nameModal").style.display = "flex";
+    sessionStorage.setItem("seenWelcome", "true");
+  } else if (!localStorage.getItem("petNameConfirmed") || data.name === "Your pet") {
+    // First time or unnamed pet
+    document.getElementById("renameForm").style.display = "block";
+    document.getElementById("welcomeBack").style.display = "none";
+    document.getElementById("nameModal").style.display = "flex";
+  }
+
+  if (data.emotion === "happy") {
+    petImage.classList.add("bounce");
+    if (!sparkleInterval) sparkleInterval = setInterval(createSparkle, 500);
+  } else {
+    petImage.classList.remove("bounce");
+    clearInterval(sparkleInterval);
+    sparkleInterval = null;
+  }
+
+  if (data.emotion === "sick") {
+    actionButtons.style.display = "block";
+    actionButtons.innerHTML = `
+      <p>${petName} is sick. Try one of the following:</p>
+      <button onclick="sendHeal()">Give Medicine 💊</button>
+      <button onclick="sendPet()">Pet It 🤚</button>
+    `;
+  } else if (data.emotion === "hungry") {
+    actionButtons.style.display = "block";
+    actionButtons.innerHTML = `
+    <p>${petName} is hungry, feed them 🥩</p>
+    <button onclick="sendFeed()">Feed 🥩</button>
+  `;
+
+  } else if (data.emotion === "lonely") {
+    actionButtons.style.display = "block";
+    actionButtons.innerHTML = `
+      <p>${petName} is lonely. Try petting it:</p>
+      <button onclick="sendPet()">Pet It 🤚</button>
+    `;
+  } else if (data.emotion === "dead") {
+    actionButtons.style.display = "block";
+    actionButtons.innerHTML = `
+      <p>${petName} has passed away. 💀</p>
+      <button onclick="revivePet()">Start Over 🔁</button>
+    `;
+
+   } else if (data.emotion === "scared") {
+  actionButtons.style.display = "block";
+  actionButtons.innerHTML = `
+    <p>${petName} is feeling scared 😢 — comfort them:</p>
+    <div style="animation: floatHand 2s infinite ease-in-out;">
+      🖐️
+    </div>
+    <button onclick="sendPet()">Pet It 🤚</button>
+  `;
+  } else {
+    actionButtons.style.display = "none";
+  }
+}
+
+
+    function createSparkle() {
+      const sparkle = document.createElement("div");
+      sparkle.classList.add("sparkle");
+      sparkle.style.left = `${Math.random() * 200 - 100}px`;
+      sparkle.style.top = `${Math.random() * -30}px`;
+      document.getElementById("sparkles").appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 1000);
+    }
+
+    async function sendHeal() {
+      await fetch('/action/heal');
       updatePetState();
-    </script>
-    
+    }
+
+    async function sendPet() {
+      await fetch('/action/pet');
+      updatePetState();
+    }
+
+    async function revivePet() {
+      await fetch('/action/revive');
+      showNameModal();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key.toLowerCase();
+      if (key === "h") sendHeal();
+      if (key === "f") fetch('/action/feed');
+      if (key === "t") fetch('/action/temp');
+    });
+
+    document.getElementById("petImage").addEventListener("mouseover", sendPet);
+
+    setInterval(updatePetState, 5000);
+ 
+    async function sendFeed() {
+    await fetch('/action/feed');
+    updatePetState();
+    }
+
+  </script>
 </body>
 </html>
