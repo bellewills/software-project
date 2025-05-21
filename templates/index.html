@@ -45,7 +45,47 @@
       text-transform: uppercase;
       color: #d76d77;
     }
+    /*Emotion based animations */
+    @keyframes shakeScared {
+     0%, 100% { transform: translateX(0); }
+     25% { transform: translateX(-3px); }
+     75% { transform: translateX(3px); }
+    }
+    @keyframes fadeSick {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes pulseLonely {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes wiggleHungry {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-2deg); }
+      75% { transform: rotate(2deg); }
+    }
+    @keyframes excitedHappy {
+     0%   { transform: rotate(0); }
+      25%  { transform: rotate(10deg); }
+      50%  { transform: rotate(-10deg); }
+      75%  { transform: rotate(10deg); }
+      100% { transform: rotate(0); }
+    }
 
+    .excited {
+      animation: excitedHappy 0.6s ease-in-out;
+    }
+
+
+    /* Apply by emotion class */
+    .pet.happy  { animation: bounce 1s infinite alternate ease-in-out; }
+    .pet.scared { animation: shakeScared 0.5s infinite ease-in-out; }
+    .pet.sick   { animation: fadeSick 1.5s infinite ease-in-out; }
+    .pet.lonely { animation: pulseLonely 1.5s infinite ease-in-out; }
+    .pet.hungry { animation: wiggleHungry 1s infinite ease-in-out; }
+    .pet.dead   { opacity: 0.3; animation: none; }
+
+    
     #sparkles {
       position: absolute;
       top: 50%;
@@ -106,11 +146,11 @@
     </div>
 
     <div id="renameForm">
-      <h2>Name your pet:</h2>
+      <h2>Name your pet:</h2> 
       <input type="text" id="nameInput" placeholder="e.g., Fluffy" />
       <button onclick="submitName()">Start</button>
     </div>
-  </div> <!-- ✅ Properly closed modal -->
+  </div> <!--Properly closed modal -->
 
   <!-- Main UI -->
   <button onclick="showNameModal()">Rename ✏️</button>
@@ -118,7 +158,11 @@
   <img id="petImage" src="/static/pet_happy.png" alt="Pet Image">
   <div id="sparkles"></div>
   <div id="actionButtons" style="display: none;"></div>
-
+  <audio id="happySound" src="/static/squeak.mp3" preload="auto"></audio>
+  <audio id="bgMusic" loop autoplay></audio>
+  <audio id="crySound" src="/static/cry.m4a" preload="auto"></audio>
+  <audio id="growlSound" src="/static/stomachgrowl.wav" preload="auto"></audio>
+  
   <script>
     let sparkleInterval = null;
     let petName = "Your pet";
@@ -132,9 +176,9 @@
     }
 
     function hideModal() {
-  localStorage.setItem("petNameConfirmed", "true");
-  document.getElementById("nameModal").style.display = "none";
-}
+      localStorage.setItem("petNameConfirmed", "true");
+      document.getElementById("nameModal").style.display = "none";
+    }
 
     async function showRename() {
       await fetch('/action/revive');
@@ -159,88 +203,85 @@
     }
 
     async function updatePetState() {
-  const res = await fetch('/pet_state');
-  const data = await res.json();
+      const res = await fetch('/pet_state');
+      const data = await res.json();
 
-  const emotionText = document.getElementById("emotion");
-  const petImage = document.getElementById("petImage");
-  const actionButtons = document.getElementById("actionButtons");
-  const nameText = document.getElementById("petName");
+      const emotionText = document.getElementById("emotion");
+      const petImage = document.getElementById("petImage");
+      const actionButtons = document.getElementById("actionButtons");
+      const nameText = document.getElementById("petName");
+      updateBackgroundMusic(data.emotion);
+      emotionText.textContent = data.emotion;
+      petImage.src = data.image;
 
-  emotionText.textContent = data.emotion;
-  petImage.src = data.image;
+      if (data.name) {
+        petName = data.name;
+        nameText.textContent = petName;
+      }
 
-  if (data.name) {
-    petName = data.name;
-    nameText.textContent = petName;
-  }
+      const hasSeenWelcome = sessionStorage.getItem("seenWelcome");
 
-  const hasSeenWelcome = sessionStorage.getItem("seenWelcome");
+      if (!hasSeenWelcome && data.name && data.name !== "Your pet") {
+        document.getElementById("savedName").textContent = data.name;
+        document.getElementById("renameForm").style.display = "none";
+        document.getElementById("welcomeBack").style.display = "block";
+        document.getElementById("nameModal").style.display = "flex";
+        sessionStorage.setItem("seenWelcome", "true");
+      } else if (!localStorage.getItem("petNameConfirmed") || data.name === "Your pet") {
+        document.getElementById("renameForm").style.display = "block";
+        document.getElementById("welcomeBack").style.display = "none";
+        document.getElementById("nameModal").style.display = "flex";
+      }
 
-  if (!hasSeenWelcome && data.name && data.name !== "Your pet") {
-    // Show welcome back modal once per session
-    document.getElementById("savedName").textContent = data.name;
-    document.getElementById("renameForm").style.display = "none";
-    document.getElementById("welcomeBack").style.display = "block";
-    document.getElementById("nameModal").style.display = "flex";
-    sessionStorage.setItem("seenWelcome", "true");
-  } else if (!localStorage.getItem("petNameConfirmed") || data.name === "Your pet") {
-    // First time or unnamed pet
-    document.getElementById("renameForm").style.display = "block";
-    document.getElementById("welcomeBack").style.display = "none";
-    document.getElementById("nameModal").style.display = "flex";
-  }
+      // ✨ Update petImage animation class
+      petImage.className = "pet"; // Reset all emotion classes
+      petImage.classList.add(data.emotion); // Add new emotion class
 
-  if (data.emotion === "happy") {
-    petImage.classList.add("bounce");
-    if (!sparkleInterval) sparkleInterval = setInterval(createSparkle, 500);
-  } else {
-    petImage.classList.remove("bounce");
-    clearInterval(sparkleInterval);
-    sparkleInterval = null;
-  }
+      // ✨ Sparkle logic only for happy
+      if (data.emotion === "happy") {
+        if (!sparkleInterval) sparkleInterval = setInterval(createSparkle, 500);
+      } else {
+        clearInterval(sparkleInterval);
+       sparkleInterval = null;
+      }
 
-  if (data.emotion === "sick") {
-    actionButtons.style.display = "block";
-    actionButtons.innerHTML = `
+      // 🧠 Action buttons
+      if (data.emotion === "sick") {
+      actionButtons.style.display = "block";
+      actionButtons.innerHTML = `
       <p>${petName} is sick. Try one of the following:</p>
       <button onclick="sendHeal()">Give Medicine 💊</button>
       <button onclick="sendPet()">Pet It 🤚</button>
-    `;
-  } else if (data.emotion === "hungry") {
-    actionButtons.style.display = "block";
-    actionButtons.innerHTML = `
-    <p>${petName} is hungry, feed them 🥩</p>
-    <button onclick="sendFeed()">Feed 🥩</button>
-  `;
-
-  } else if (data.emotion === "lonely") {
-    actionButtons.style.display = "block";
-    actionButtons.innerHTML = `
-      <p>${petName} is lonely. Try petting it:</p>
-      <button onclick="sendPet()">Pet It 🤚</button>
-    `;
-  } else if (data.emotion === "dead") {
-    actionButtons.style.display = "block";
-    actionButtons.innerHTML = `
-      <p>${petName} has passed away. 💀</p>
-      <button onclick="revivePet()">Start Over 🔁</button>
-    `;
-
-   } else if (data.emotion === "scared") {
-  actionButtons.style.display = "block";
-  actionButtons.innerHTML = `
-    <p>${petName} is feeling scared 😢 — comfort them:</p>
-    <div style="animation: floatHand 2s infinite ease-in-out;">
-      🖐️
-    </div>
-    <button onclick="sendPet()">Pet It 🤚</button>
-  `;
-  } else {
-    actionButtons.style.display = "none";
-  }
-}
-
+      `;
+      } else if (data.emotion === "hungry") {
+        actionButtons.style.display = "block";
+        actionButtons.innerHTML = `
+      <p>${petName} is hungry, feed them 🥩</p>
+      <button onclick="sendFeed()">Feed 🥩</button>
+     `;
+      } else if (data.emotion === "lonely") {
+        actionButtons.style.display = "block";
+        actionButtons.innerHTML = `
+        <p>${petName} is lonely. Try petting it:</p>
+        <button onclick="sendPet()">Pet It 🤚</button>
+        `;
+      } else if (data.emotion === "dead") {
+        actionButtons.style.display = "block";
+        actionButtons.innerHTML = `
+        <p>${petName} has passed away. 💀</p>
+        <button onclick="revivePet()">Start Over 🔁</button>
+        `;
+        } else if (data.emotion === "scared") {
+        actionButtons.style.display = "block";
+        actionButtons.innerHTML = `
+        <p>${petName} is feeling scared 😢 — comfort them:</p>
+        <div style="animation: floatHand 2s infinite ease-in-out;">🖐️</div>
+        <button onclick="sendPet()">Pet It 🤚</button>
+        `;
+        } else {
+           actionButtons.style.display = "none";
+      }
+    }
 
     function createSparkle() {
       const sparkle = document.createElement("div");
@@ -257,9 +298,26 @@
     }
 
     async function sendPet() {
-      await fetch('/action/pet');
-      updatePetState();
+    const res = await fetch('/pet_state');
+    const data = await res.json();
+
+    const petImage = document.getElementById("petImage");
+
+    if (data.emotion === "happy") {
+      petImage.classList.add("excited");
+      document.getElementById("happySound")?.play();
+    setTimeout(() => petImage.classList.remove("excited"), 600);
+    } else if (data.emotion === "hungry") {
+     document.getElementById("growlSound").play();
+   } else if (["lonely", "sad"].includes(data.emotion)) {
+      document.getElementById("crySound").play();
     }
+
+    await fetch('/action/pet');
+    updatePetState();
+    }
+
+
 
     async function revivePet() {
       await fetch('/action/revive');
@@ -281,6 +339,21 @@
     await fetch('/action/feed');
     updatePetState();
     }
+    function updateBackgroundMusic(emotion) {
+    const music = document.getElementById("bgMusic");
+    let src = "";
+
+    if (emotion === "happy") src = "/static/happy.mp3";
+    else if (["sad", "sick", "lonely"].includes(emotion)) src = "/static/sad.wav";
+    else if (emotion === "hungry") src = "/static/hungry.wav";
+    else if (emotion === "dead") src = "/static/dead.wav";
+
+    if (music.src !== window.location.origin + src) {
+    music.src = src;
+    music.play(); 
+    } 
+  }
+
 
   </script>
 </body>

@@ -25,9 +25,10 @@ class Pet:
         self.temperature = 22.0
         self.scared_level = 0
         self.sickness_level = 0
-        self.state_duration = 0
         self.sick_duration = 0
         self.last_hunger_update = time.time()
+        self.last_hint = ""
+        self.last_pet_time = time.time()
 
     def rename(self, new_name):
         self.name = new_name
@@ -39,6 +40,7 @@ class Pet:
 
     def interact(self):
         self.attention_level = min(100, self.attention_level + 10)
+        self.last_pet_time = time.time()
         if self.state == State.SCARED:
             self.scared_level = 0
 
@@ -57,57 +59,74 @@ class Pet:
 
     def update_state(self):
         if self.state == State.DEAD:
+            print("Pet is dead. update_state() skipped.")
             return
 
-        if self.state == State.SICK:
-            self.sick_duration += 1
-            if self.sick_duration > 5:
-                self.state = State.DEAD
-            return
-
-        # Hunger increases over time
         if time.time() - self.last_hunger_update > 10:
             self.hunger_level += 10
             self.hunger_level = min(self.hunger_level, 100)
             self.last_hunger_update = time.time()
 
-        # Determine state
-        if self.sickness_level > 50:
-            new_state = State.SICK
-        elif self.hunger_level > 70:
-            new_state = State.HUNGRY
-        elif self.attention_level < 30:
-            new_state = State.LONELY
-        elif self.scared_level > 5:
-            new_state = State.SCARED
-        else:
-            new_state = State.HAPPY
+        if self.state == State.SICK:
+            if self.sickness_level > 50:
+                self.sick_duration += 1
+                print(f"Sick duration: {self.sick_duration}")
+                if self.sick_duration > 5:
+                    self.state = State.DEAD
+                    print("Pet has died from prolonged sickness.")
+                    return
+            else:
+                print("Sickness level dropped — exiting sick state.")
+                self.state = State.HAPPY
+                self.sick_duration = 0
 
-        # Hungry duration tracking
-        if new_state == State.HUNGRY:
+        if self.sickness_level > 50 and self.state != State.SICK:
+            self.state = State.SICK
+            self.sick_duration = 0
+            print("Pet is now sick.")
+            return
+
+        if self.scared_level > 5 or self.state == State.SCARED:
+            self.state = State.SCARED
+            return
+
+        if time.time() - self.last_pet_time > 80:
+            self.attention_level = max(0, self.attention_level - 10)
+
+        if self.attention_level < 30:
+            self.state = State.LONELY
+            return
+
+        if self.hunger_level > 70:
+            self.state = State.HUNGRY
             self.hungry_duration += 1
         else:
             self.hungry_duration = 0
 
         if self.hungry_duration >= 36:
-            new_state = State.SICK
+            self.state = State.SICK
             self.hungry_duration = 0
             self.sick_duration = 0
+            print("Pet became sick due to starvation.")
+            return
 
-        if new_state == self.state:
-            self.state_duration += 1
-        else:
-            self.state_duration = 0
+        self.state = State.HAPPY
 
-        self.state = new_state
+    def play(self):
+        if self.state == State.SAD:
+            print("Playing cheered up the pet!")
+            self.state = State.HAPPY
 
-        if self.state in [State.HUNGRY, State.LONELY, State.SAD, State.SCARED] and self.state_duration > 5:
-            self.state = State.SICK
-            self.state_duration = 0
-            self.sick_duration = 0
+    def set_emotion(self, emotion):
+        try:
+            self.state = State[emotion.upper()]
+            print(f"Pet emotion manually set to: {self.state}")
+        except KeyError:
+            print(f"Invalid emotion: {emotion}")
 
-# ----- GLOBAL PET INSTANCE -----
+# ----- GLOBAL INSTANCE AND LOCK -----
 _current_pet = Pet()
+pet_lock = threading.Lock()
 _last_interaction_time = time.time()
 
 def get_pet():
@@ -120,16 +139,15 @@ def revive_pet():
     global _current_pet
     _current_pet = Pet()
 
-# ----- MQTT CALLBACKS -----
+# ----- MQTT SETUP -----
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker:", rc)
-    client.subscribe("sandbox/fromMiddleHouse") 
+    client.subscribe("sandbox/fromMiddleHouse")
 
 def on_message(client, userdata, msg):
     global _last_interaction_time
 
     payload_raw = msg.payload.decode()
-
     try:
         payload = json.loads(payload_raw)
     except Exception as e:
@@ -147,29 +165,25 @@ def on_message(client, userdata, msg):
 
     interaction_happened = False
 
-    # Feed via button
     if house == "middle" and room == "bedroom" and component == "button" and msg_value == "pressed":
         _current_pet.feed()
         interaction_happened = True
 
-    # Feed via LED turning on — but only if hungry
-    elif house == "middle" and room == "bedroom" and component == "led" and msg_value == "LED on":
+    elif house == "middle" and room == "bedroom" and component == "led" and msg_value.lower() == "led on":
         if _current_pet.state == State.HUNGRY:
             _current_pet.feed()
             print("Pet fed via LED turning on")
             interaction_happened = True
-#
-    # Heal via bathroom button
+
     elif house == "middle" and room == "bathroom" and component == "button" and msg_value == "pressed":
         _current_pet.heal()
         interaction_happened = True
 
-    # Petting via PIR motion sensor
-    elif house == "middle" and room in ["living", "front"] and component == "pir" and msg_value == "PIR on":
+    elif house == "middle" and room in ["living", "front"] and component in ["pir", "led"] and msg_value.lower() in ["pir on", "led on"]:
         _current_pet.interact()
         interaction_happened = True
+        print("Pet interacted with via motion sensor or LED")
 
-    # Update temperature
     elif house == "middle" and room == "sensing" and component == "temp":
         try:
             _current_pet.temperature = float(value)
@@ -177,30 +191,35 @@ def on_message(client, userdata, msg):
         except ValueError:
             print("Invalid temperature:", value)
 
-    # Scare pet with noise
     elif house == "middle" and room == "sensing" and component == "noise":
         if isinstance(value, (int, float)) and value > 50:
             _current_pet.hear_noise()
 
-    # Gas sensor input
     elif house == "middle" and room == "sensing" and component == "gasConcentration":
         if isinstance(value, (int, float)) and value > 100:
             _current_pet.scared_level += 5
             _current_pet.sickness_level += 5
 
-    # Revive manually
+    if house == "middle" and room == "bathroom" and component in ["fan", "led"] and msg_value.lower() in ["on", "led on"]:
+        _current_pet.state = State.SCARED
+        _current_pet.last_hint = "The fan is too loud and lights are too bright!!"
+        print("Pet is scared due to fan or bright lights!")
+
+    elif house == "middle" and room == "bathroom" and component in ["fan", "led"] and msg_value.lower() in ["off", "led off"]:
+        if _current_pet.state == State.SCARED:
+            _current_pet.state = State.HAPPY
+            _current_pet.last_hint = ""
+            print("Fan and lights turned off — pet is calm again.")
+
     elif house == "middle" and room == "system" and component == "revive":
         revive_pet()
         print("Pet revived manually.")
 
-    # Passive loneliness decay
-    if time.time() - _last_interaction_time > 180:
-        _current_pet.attention_level = max(0, _current_pet.attention_level - 50)
-
     if interaction_happened:
         _last_interaction_time = time.time()
 
-    _current_pet.update_state()
+    with pet_lock:
+        _current_pet.update_state()
 
     print("Pet state after update:", _current_pet.state)
     print("Hunger:", _current_pet.hunger_level)
@@ -211,14 +230,15 @@ def on_message(client, userdata, msg):
 
 # ----- MQTT CLIENT SETUP -----
 client = mqtt.Client()
-client.username_pw_set("student", "austral-clash-sawyer-blaze") 
+client.username_pw_set("student", "austral-clash-sawyer-blaze")
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect("mqtt.cci.arts.ac.uk", 1883, 60)
 
 def periodic_update():
     while True:
-        _current_pet.update_state()
+        with pet_lock:
+            _current_pet.update_state()
         time.sleep(5)
 
 if __name__ == "__main__":

@@ -73,11 +73,11 @@ def pet_state():
 
     pet_image = emotion_to_image.get(pet_emotion, "pet_happy.png")
     return jsonify({
-        "emotion": pet_emotion,
-        "image": f"/static/{pet_image}",
-        "name": pet_name  #Return the pet name to frontend
-    })
-
+    "emotion": pet_emotion,
+    "image": f"/static/{pet_image}",
+    "name": pet_name,
+    "hint": getattr(pet, "last_hint", "")
+})
 
 if __name__ == "__main__":
     app.run(debug=True)
