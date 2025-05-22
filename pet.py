@@ -3,6 +3,9 @@ import paho.mqtt.client as mqtt
 import json
 import time
 import threading
+import random
+
+
 
 # ----- PET STATE MACHINE -----
 
@@ -29,6 +32,8 @@ class Pet:
         self.last_hunger_update = time.time()
         self.last_hint = ""
         self.last_pet_time = time.time()
+        self.hidden_room = None
+
 
     def rename(self, new_name):
         self.name = new_name
@@ -67,50 +72,64 @@ class Pet:
             self.hunger_level = min(self.hunger_level, 100)
             self.last_hunger_update = time.time()
 
+        new_state = self.state
+
+        # Handle sickness duration
         if self.state == State.SICK:
             if self.sickness_level > 50:
                 self.sick_duration += 1
                 print(f"Sick duration: {self.sick_duration}")
                 if self.sick_duration > 5:
-                    self.state = State.DEAD
-                    print("Pet has died from prolonged sickness.")
+                    new_state = State.DEAD
+                    print("💀 Pet has died from prolonged sickness.")
+                    self.state = new_state
                     return
             else:
-                print("Sickness level dropped — exiting sick state.")
-                self.state = State.HAPPY
-                self.sick_duration = 0
+                if self.hungry_duration == 0:
+                    print("🤷 Pet recovered — sickness dropped.")
+                    self.sick_duration = 0
+                    new_state = State.HAPPY
 
+        # Become sick if sickness level is too high
         if self.sickness_level > 50 and self.state != State.SICK:
-            self.state = State.SICK
+            new_state = State.SICK
             self.sick_duration = 0
-            print("Pet is now sick.")
-            return
+            print("⚠️ Pet became sick (sickness_level > 50).")
 
-        if self.scared_level > 5 or self.state == State.SCARED:
-            self.state = State.SCARED
-            return
+        elif self.scared_level > 5:
+            new_state = State.SCARED
 
-        if time.time() - self.last_pet_time > 80:
+        elif time.time() - self.last_pet_time > 80:
             self.attention_level = max(0, self.attention_level - 10)
 
         if self.attention_level < 30:
-            self.state = State.LONELY
-            return
+            new_state = State.LONELY
 
+        # Handle hunger → prolonged hunger → sickness
         if self.hunger_level > 70:
-            self.state = State.HUNGRY
             self.hungry_duration += 1
+            print(f"[HUNGRY] hunger: {self.hunger_level}, duration: {self.hungry_duration}")
+            if self.hungry_duration >= 12:
+                if self.state != State.SICK:
+                    new_state = State.SICK
+                    self.hungry_duration = 0
+                    self.sick_duration = 0
+                    self.sickness_level = 60
+                    print("⚠️ Pet became sick due to prolonged hunger.")
+                return  # Prevent reverting to hungry after becoming sick
+            elif self.state != State.SICK:
+                return  #Exit to prevent later overwrites
+            else:
+                new_state = State.HUNGRY
         else:
             self.hungry_duration = 0
 
-        if self.hungry_duration >= 36:
-            self.state = State.SICK
-            self.hungry_duration = 0
-            self.sick_duration = 0
-            print("Pet became sick due to starvation.")
-            return
+        if new_state not in [State.DEAD, State.SICK, State.SCARED, State.LONELY, State.HUNGRY]:
+            new_state = State.HAPPY
 
-        self.state = State.HAPPY
+        if new_state != self.state:
+            print(f"[STATE CHANGE] {self.state.name} → {new_state.name}")
+        self.state = new_state
 
     def play(self):
         if self.state == State.SAD:
@@ -227,6 +246,10 @@ def on_message(client, userdata, msg):
     print("Scared:", _current_pet.scared_level)
     print("Temp:", _current_pet.temperature)
     print("Sickness:", _current_pet.sickness_level)
+
+# ----- Pet Game Mode -----
+HIDE_ROOMS = ["living", "bedroom", "bathroom", "front"]
+_current_pet.hidden_room = random.choice(HIDE_ROOMS)
 
 # ----- MQTT CLIENT SETUP -----
 client = mqtt.Client()
