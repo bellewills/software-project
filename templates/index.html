@@ -2,45 +2,105 @@
 <html>
 <head>
   <title>My Virtual Pet</title>
+  <link rel="icon" href="data:,">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: linear-gradient(to bottom, #fdf6e3, #ffe4e1);
       font-family: 'Courier New', monospace;
-    }
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      text-align: center;
-      position: relative;
+      color: #dce3f0; /* soft bluey off-white */
+      background: linear-gradient(to bottom, #fdf6e3, #ffe4e1);
       overflow: hidden;
     }
+    label {
+    color: #dce3f0;
+    font-weight: bold;
+    }
+    select, option {
+      background-color: #2a2a2a;
+      color: #ffffff;
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+    }
+
+    #topControls {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 10;
+    }
+
+    #themeSelector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #audioControls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    #petSection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 80px;
+    }
+
     h1 {
       font-size: 2rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
+
+    #petWrapper {
+      position: relative;
+      display: inline-block;
+    }
+
     #petImage {
       width: 200px;
       image-rendering: pixelated;
     }
-    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
-    @keyframes shakeScared { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
-    @keyframes fadeSick { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    @keyframes pulseLonely { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-    @keyframes wiggleHungry { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-2deg); } 75% { transform: rotate(2deg); } }
-    @keyframes excitedHappy { 0% { transform: rotate(0); } 25% { transform: rotate(10deg); } 50% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } 100% { transform: rotate(0); } }
 
-    .excited { animation: excitedHappy 0.6s ease-in-out; }
-    .pet.happy  { animation: bounce 1s infinite alternate ease-in-out; }
-    .pet.scared { animation: shakeScared 0.5s infinite ease-in-out; }
-    .pet.sick   { animation: fadeSick 1.5s infinite ease-in-out; }
-    .pet.lonely { animation: pulseLonely 1.5s infinite ease-in-out; }
-    .pet.hungry { animation: wiggleHungry 1s infinite ease-in-out; }
-    .pet.dead   { opacity: 0.3; animation: none; }
+    #tearContainer {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .tear {
+      width: 8px;
+      height: 14px;
+      background: rgba(173, 216, 230, 0.9);
+      border-radius: 50%;
+      position: absolute;
+      animation: fallTear 1.2s linear forwards;
+    }
+
+    @keyframes fallTear {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(60px); opacity: 0; }
+    }
 
     #sparkles {
       position: absolute;
@@ -49,6 +109,7 @@
       transform: translate(-50%, -50%);
       pointer-events: none;
     }
+
     .sparkle {
       position: absolute;
       width: 10px;
@@ -57,15 +118,36 @@
       border-radius: 50%;
       animation: sparkleAnim 1s linear forwards;
     }
+
     @keyframes sparkleAnim {
       0% { opacity: 1; transform: translateY(0) scale(1); }
       100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
     }
 
+    .excited { animation: excitedHappy 0.6s ease-in-out !important; }
+    .pet.happy  { animation: bounce 1s infinite alternate ease-in-out !important; } 
+    .pet.scared { animation: shakeScared 0.5s infinite ease-in-out !important; }
+    .pet.sick   { animation: fadeSick 1.5s infinite ease-in-out !important; }
+    .pet.lonely { animation: pulseLonely 1.5s infinite ease-in-out !important; }
+    .pet.hungry { animation: wiggleHungry 1s infinite ease-in-out !important; }
+    .pet.dead   { opacity: 0.3; animation: none !important; }
+
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+    @keyframes shakeScared { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+    @keyframes fadeSick { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes pulseLonely { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes wiggleHungry { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-2deg); } 75% { transform: rotate(2deg); } }
+    @keyframes excitedHappy { 0% { transform: rotate(0); } 25% { transform: rotate(10deg); } 50% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } 100% { transform: rotate(0); } }
+
+    .hidden {
+      visibility: hidden;
+    }
+
     #actionButtons, #gameButtons, #hideSeekButtons {
       margin-top: 20px;
     }
-    #actionButtons button, #gameButtons button, #hideSeekButtons button {
+
+    #actionButtons button, #gameButtons button, #hideSeekButtons button, #renameBtn {
       margin: 0 10px;
       padding: 10px 15px;
       font-size: 1rem;
@@ -75,64 +157,105 @@
       color: white;
       cursor: pointer;
     }
-    #actionButtons button:hover, #gameButtons button:hover, #hideSeekButtons button:hover {
+
+    #actionButtons button:hover, #gameButtons button:hover, #hideSeekButtons button:hover, #renameBtn:hover {
       background-color: #f67280;
     }
-    @keyframes floatHand {
-      0% { transform: translateY(0); opacity: 0.6; }
-      50% { transform: translateY(-10px); opacity: 1; }
-      100% { transform: translateY(0); opacity: 0.6; }
-    }
-    @keyframes popIn {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .hidden {
-        visibility: hidden;
+
+    #nameModal {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(249,187,208,0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
     }
 
+    #renameForm input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: inherit;
+    }
+
+    #renameForm button {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <div id="nameModal" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(249,187,208,0.95);display:none;flex-direction:column;justify-content:center;align-items:center;z-index:10;">
+  <div id="topControls">
+    <div id="themeSelector">
+      <label for="themeDropdown">🏠 Choose Your Home:</label>
+      <select id="themeDropdown">
+        <option value="city">City Living</option>
+        <option value="beach">Beach Vibes</option>
+        <option value="mountain">Cosy Mountainside</option>
+      </select>
+    </div>
+    <div style="position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 10;">
+    <button onclick="showNameModal()" style="padding: 10px 15px; background-color: #ff9a9e; color: white; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer;">
+     Rename ✏️
+    </button>
+    </div>
+
+    <div id="audioControls">
+      <div>
+        <label for="bgVolume">🎼 Music Volume</label>
+        <input type="range" id="bgVolume" min="0" max="1" step="0.01" value="0.4" />
+        <button id="toggleMusic">Mute</button>
+      </div>
+      <div>
+        <label for="sfxVolume">🔊 SFX Volume</label>
+        <input type="range" id="sfxVolume" min="0" max="1" step="0.01" value="1" />
+        <button id="toggleSFX">Mute</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="nameModal">
     <div id="welcomeBack" style="display: none;">
       <h2>Welcome back! Continue with <span id="savedName"></span>?</h2>
-      <button onclick="hideModal()">Continue</button>
-      <button onclick="showRename()">Adopt New Pet 🐾</button>
+      <button onclick="hideModal(); triggerAutoplay();">Continue</button>
+      <button onclick="showRename(); triggerAutoplay();">Adopt New Pet 🐾</button>
     </div>
     <div id="renameForm">
       <h2>Name your pet:</h2>
-      <input type="text" id="nameInput" placeholder="e.g., Leo" />
+      <input type="text" id="nameInput" placeholder="e.g. Leo" />
       <button onclick="submitName()">Start</button>
     </div>
   </div>
 
-  <button onclick="showNameModal()">Rename ✏️</button>
-  <h1><span id="petName">Your pet</span> is feeling: <span id="emotion">loading...</span></h1>
-  <img id="petImage" src="/static/pet_happy.png" alt="Pet Image">
-  <div id="sparkles"></div>
-  <div id="actionButtons" style="display: none;"></div>
-
+  <div id="petSection">
+    <h1><span id="petName">Your pet</span> is feeling: <span id="emotion">loading...</span></h1>
+    <div id="petWrapper">
+      <img id="petImage" src="/static/pet_happy.png" alt="Pet Image">
+      <div id="tearContainer"></div>
+      <div id="sparkles"></div>
+    </div>
+    <div id="actionButtons" style="display: none;"></div>
+    <div id="gameButtons" style="display: none;">
+      <button onclick="startHideSeek()">🎮 Play a Game</button>
+    </div>
+    <div id="hideSeekButtons" style="display: none;">
+      <p id="hideSeekText">Your pet is playing hide and seek!</p>
+      <button onclick="guessRoom('bedroom')">Bedroom</button>
+      <button onclick="guessRoom('living')">Living Room</button>
+      <button onclick="guessRoom('bathroom')">Bathroom</button>
+      <button onclick="guessRoom('front')">Front Porch</button>
+    </div>
+  </div>
   <audio id="happySound" src="/static/squeak.mp3" preload="auto"></audio>
   <audio id="bgMusic" loop autoplay muted></audio>
-  <audio id="crySound" src="/static/cry.m4a" preload="auto"></audio>
+  <audio id="crySound" src="/static/cry.wav" preload="auto"></audio>
   <audio id="growlSound" src="/static/stomachgrowl.wav" preload="auto"></audio>
   <audio id="wrongSound" src="/static/wrong.wav" preload="auto"></audio>
   <audio id="correctSound" src="/static/correct.wav" preload="auto"></audio>
   
-  <div id="gameButtons" style="display: none;">
-    <button onclick="startHideSeek()">🎮 Play a Game</button>
-  </div>
-
-  <div id="hideSeekButtons" style="display: none;">
-    <p id="hideSeekText">Your pet is playing hide and seek! Where do you think they're hiding?</p>
-    <button onclick="guessRoom('bedroom')">Bedroom</button>
-    <button onclick="guessRoom('living')">Living Room</button>
-    <button onclick="guessRoom('bathroom')">Bathroom</button>
-    <button onclick="guessRoom('front')">Front Porch</button>
-  </div>
-
 <script>
   let sparkleInterval = null;
   let petName = "Your pet";
@@ -143,24 +266,29 @@
   }
 
   function hideModal() {
-    localStorage.setItem("petNameConfirmed", "true");
-    document.getElementById("nameModal").style.display = "none";
-  }
+  localStorage.setItem("petNameConfirmed", "true");
+  localStorage.setItem("savedPetName", petName);
+  document.getElementById("nameModal").style.display = "none";
+  triggerAutoplay(); //Ensure music starts on continue
+}
 
-  async function showRename() {
-    await fetch('/action/revive');
-    localStorage.removeItem("petNameConfirmed");
-    document.getElementById("renameForm").style.display = "block";
-    document.getElementById("welcomeBack").style.display = "none";
-    showNameModal();
-  }
+async function showRename() {
+  await fetch('/action/revive');
+  localStorage.removeItem("petNameConfirmed");
+  document.getElementById("renameForm").style.display = "block";
+  document.getElementById("welcomeBack").style.display = "none";
+  showNameModal();
+  triggerAutoplay(); // Ensure music starts on rename
+}
 
+  // Setting the pet's name option 
   async function submitName() {
     const input = document.getElementById("nameInput");
     petName = input.value.trim() || "Your pet";
     document.getElementById("petName").textContent = petName;
     document.getElementById("nameModal").style.display = "none";
     localStorage.setItem("petNameConfirmed", "true");
+    localStorage.setItem("savedPetName", petName); // Save pet name for use in autoplay logic
 
     const music = document.getElementById("bgMusic");
     music.muted = false;
@@ -185,11 +313,16 @@
 
     petImage.src = data.image;
     emotionText.textContent = data.emotion;
+    updateTearEffect(data.emotion?.toLowerCase?.());
     petName = data.name;
     nameText.textContent = petName;
+    petImage.className = `pet ${data.emotion}`;
 
-    petImage.className = "pet";
-    petImage.classList.add(data.emotion);
+    const crySound = document.getElementById("crySound");
+    if (!["lonely", "sad"].includes(data.emotion)) {
+      crySound.pause();
+      crySound.currentTime = 0;
+    }
 
     if (data.emotion === "happy") {
       if (!sparkleInterval) sparkleInterval = setInterval(createSparkle, 500);
@@ -201,7 +334,7 @@
       document.getElementById("hideSeekButtons").style.display = "none";
     }
 
-   // 🎨 Set dynamic emotion text colour
+   // Set emotion text colour
     const emotionColors = {
      happy: "pink",
       sad: "blue",
@@ -240,23 +373,64 @@
     }
 
     updateBackgroundMusic(data.emotion);
+    console.log("Current Emotion:", data.emotion);
+
+  }
+  async function checkFeedback() {
+    const res = await fetch("/game_feedback");
+    const data = await res.json();
+
+    if (data.result === "correct") {
+      document.getElementById("correctSound").play();
+      const text = document.getElementById("hideSeekText");
+      text.innerHTML = `<span style="font-size: 3rem; color: green;">✅</span> You found ${petName}! 🎉`;
+
+      const petImage = document.getElementById("petImage");
+      petImage.classList.remove("hidden");
+      petImage.style.transform = "translateX(0)";
+      petImage.style.animation = "popIn 0.6s ease-in-out";
+
+      const hideSeek = document.getElementById("hideSeekButtons");
+      hideSeek.innerHTML = `
+        <p id="hideSeekText"><span style="font-size: 3rem; color: green;">✅</span> You found ${petName}! 🎉</p>
+        <button onclick="playAgain()">Play Again</button>
+        <button onclick="exitGame()">Exit Game</button>
+      `;
+
+    //Game ends here - so clear interval
+      clearInterval(feedbackInterval);
+      feedbackInterval = null;
+    } else if (data.result === "wrong") {
+      document.getElementById("wrongSound").play();
+      const text = document.getElementById("hideSeekText");
+      text.innerHTML = `<span style="font-size: 3rem; color: red;">❌</span> Not there! Try another room.`;
+      // Do not clear the interval here!
+    }
   }
 
+  let feedbackInterval = null;
 
   async function startHideSeek() {
     const petImage = document.getElementById("petImage");
 
-    // Hide the pet off-screen
+    // Hide the pet visually
     petImage.style.transition = "transform 0.5s ease-in-out";
     petImage.style.transform = "translateX(-100vw)";
     petImage.classList.add("hidden");
 
+    // Start the game on the backend
     await fetch('/start_hide_seek');
+
+    // Show the buttons
     const hideSeek = document.getElementById("hideSeekButtons");
     hideSeek.style.display = "block";
     document.getElementById("hideSeekText").textContent = `${petName} is playing hide and seek!`;
-  }
 
+    // Start polling for results — regardless of Play Again
+    if (!feedbackInterval) {
+    feedbackInterval = setInterval(checkFeedback, 1000);
+    }
+  }
 
   async function guessRoom(room) {
     const res = await fetch(`/guess_room?room=${room}`);
@@ -277,18 +451,31 @@
       // Replace buttons with Play Again + Exit only
       hideSeek.innerHTML = `
         <p id="hideSeekText"><span style="font-size: 3rem; color: green;">✅</span> You found ${petName}! 🎉</p>
-        <button onclick="startHideSeek()">Play Again</button>
+        <button onclick="playAgain()">Play Again</button>
         <button onclick="exitGame()">Exit Game</button>
       `;
+
     } else {
       document.getElementById("wrongSound").play();
       text.innerHTML = `<span style="font-size: 3rem; color: red;">❌</span> Not there! Try another room.`;
     }
   }
 
+  // Play again option for the user  
+  function playAgain() {
+    const hideSeek = document.getElementById("hideSeekButtons");
 
+    hideSeek.innerHTML = `
+      <p id="hideSeekText">${petName} is playing hide and seek! Can you find them?</p>
+      <button onclick="guessRoom('bedroom')">Bedroom</button>
+      <button onclick="guessRoom('living')">Living Room</button>
+      <button onclick="guessRoom('bathroom')">Bathroom</button>
+      <button onclick="guessRoom('front')">Front Porch</button>
+    `;
 
-
+    startHideSeek(); //polling will now start inside here
+  }
+  
   function exitGame() {
     const hideSeek = document.getElementById("hideSeekButtons");
     hideSeek.style.display = "none";
@@ -300,10 +487,18 @@
       <button onclick="guessRoom('front')">Front Porch</button>
     `;
     updatePetState();
+    clearInterval(feedbackInterval);
+    feedbackInterval = null;
   }
 
   async function sendHeal() { await fetch('/action/heal'); updatePetState(); }
-  async function sendFeed() { await fetch('/action/feed'); updatePetState(); }
+
+  async function sendFeed() {
+  console.log("📡 Sending feed request to /action/feed");
+  const res = await fetch('/action/feed');
+  console.log("✅ Feed response status:", res.status);
+  updatePetState();
+}
 
   async function sendPet() {
     const before = await (await fetch('/pet_state')).json();
@@ -316,8 +511,12 @@
       document.getElementById("happySound")?.play();
       setTimeout(() => petImage.classList.remove("excited"), 600);
     }
+    const crySound = document.getElementById("crySound");
     if (["lonely", "sad"].includes(before.emotion) && after.emotion !== "happy") {
-      document.getElementById("crySound").play();
+      crySound.play();
+    } else {
+      crySound.pause();
+      crySound.currentTime = 0;
     }
     if (before.emotion === "hungry" && after.emotion === "hungry") {
       document.getElementById("growlSound").play();
@@ -334,8 +533,60 @@
     document.getElementById("sparkles").appendChild(sparkle);
     setTimeout(() => sparkle.remove(), 1000);
   }
+  function updateTearEffect(emotion) {
+    const container = document.getElementById("tearContainer");
+    container.innerHTML = ""; // Clear previous
 
-  function updateBackgroundMusic(emotion) {
+    if (emotion === "sad" || emotion === "lonely") {
+      const tear = document.createElement("div");
+      tear.className = "tear";
+      container.appendChild(tear);
+      setTimeout(() => tear.remove(), 1200);
+    }
+  }
+  function updateTearEffect(emotion) {
+    const container = document.getElementById("tearContainer");
+    container.innerHTML = "";
+
+    if (emotion === "sad" || emotion === "lonely") {
+      const tearLeft = document.createElement("div");
+      const tearRight = document.createElement("div");
+
+      tearLeft.className = "tear";
+      tearRight.className = "tear";
+
+      tearLeft.style.left = "-10px";  // offset from center
+      tearRight.style.left = "10px";
+
+      container.appendChild(tearLeft);
+      container.appendChild(tearRight);
+
+      setTimeout(() => {
+        tearLeft.remove();
+        tearRight.remove();
+      }, 1200);
+    }
+  }
+
+  document.getElementById("themeDropdown").addEventListener("change", async function () {
+    const selectedTheme = this.value;
+    const res = await fetch("/set_theme", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: selectedTheme })
+    });
+    if (res.ok) {
+      document.body.style.backgroundImage = `url('/static/${selectedTheme}.${getTimeOfDay()}.png')`;
+      console.log("Theme changed to:", selectedTheme);
+    }
+  });
+  // Helper function to determine time of day
+  function getTimeOfDay() {
+    const hour = new Date().getHours();
+    return hour < 7 || hour > 18 ? "night" : "day";
+  }
+
+  function updateBackgroundMusic(emotion) { // BG Music 
     const music = document.getElementById("bgMusic");
     let src = "";
     if (emotion === "happy") src = "/static/happy.mp3";
@@ -350,8 +601,9 @@
     }
   }
 
-  async function revivePet() {
+  async function revivePet() {  
     await fetch('/action/revive');
+    localStorage.removeItem("petNameConfirmed");
     showNameModal();
   }
 
@@ -363,10 +615,107 @@
   });
 
   document.getElementById("petImage").addEventListener("mouseover", sendPet);
-  setInterval(updatePetState, 5000);
+
+  window.addEventListener("DOMContentLoaded", async () => {
+  const res = await fetch('/pet_state');
+  const data = await res.json();
+  petName = data.name || "Your pet"; // update the global petName
+  const emotion = data.emotion?.toLowerCase?.();
+  const confirmed = localStorage.getItem("petNameConfirmed");
+  const shouldPrompt = !confirmed || petName === "Your pet";
+  document.getElementById("bgVolume").addEventListener("input", triggerAutoplay, { once: true });
+  document.body.style.backgroundImage = `url('${data.background_image}')`;
+  document.getElementById("themeDropdown").value = data.bg_theme;
+
+  if (shouldPrompt) {
+    document.getElementById("savedName").textContent = petName;
+    document.getElementById("nameModal").style.display = "flex";
+    if (emotion === "dead") {
+      document.getElementById("welcomeBack").style.display = "none";
+      document.getElementById("renameForm").style.display = "block";
+    } else {
+      document.getElementById("welcomeBack").style.display = "block";
+      document.getElementById("renameForm").style.display = "none";
+    }
+  }
+});
+
+function triggerAutoplay() {
+  const bgMusic = document.getElementById("bgMusic") || {};
+  bgMusic.muted = false;
+  bgMusic.volume = parseFloat(document.getElementById("bgVolume")?.value || 0.4);
+  bgMusic.play?.().catch(err => console.warn("Autoplay blocked:", err));
+}
+  window.addEventListener("click", async () => {
+    const confirmed = localStorage.getItem("petNameConfirmed");
+    const storedName = localStorage.getItem("savedPetName");
+    if (confirmed && storedName && storedName !== "Your pet") {
+      const music = document.getElementById("bgMusic");
+      if (music.paused || music.muted) {
+        music.muted = false;
+        music.volume = parseFloat(document.getElementById("bgVolume").value || 0.4);
+      }
+    }
+  }, { once: true });
+
+  setInterval(updatePetState, 1000); // Every 1 sec
+
+  //Vol slider + toggle logic for background music
+  const bgMusic = document.getElementById("bgMusic");
+  const bgSlider = document.getElementById("bgVolume");
+  const toggleMusic = document.getElementById("toggleMusic");
+
+  bgSlider.addEventListener("input", () => {
+   bgMusic.volume = parseFloat(bgSlider.value);
+  if (bgMusic.volume === 0) {
+      toggleMusic.textContent = "Unmute";
+      bgMusic.muted = true;
+  } else {
+    toggleMusic.textContent = "Mute";
+    bgMusic.muted = false;
+  }
+  });
+
+  toggleMusic.addEventListener("click", () => {
+    bgMusic.muted = !bgMusic.muted;
+    toggleMusic.textContent = bgMusic.muted ? "Unmute" : "Mute";
+    bgSlider.value = bgMusic.muted ? 0 : bgMusic.volume || 0.4;
+  });
+
+  //Vol slider + toggle logic for sound effects
+  const sfxSlider = document.getElementById("sfxVolume");
+  const toggleSFX = document.getElementById("toggleSFX");
+
+  // Get all sound effects by ID
+  const soundEffects = [
+  "happySound",
+  "crySound",
+  "growlSound",
+  "wrongSound",
+  "correctSound"
+  ].map(id => document.getElementById(id));
+
+  sfxSlider.addEventListener("input", () => {
+    const vol = parseFloat(sfxSlider.value);
+    soundEffects.forEach(sfx => sfx.volume = vol);
+    toggleSFX.textContent = vol === 0 ? "Unmute" : "Mute";
+  });
+
+  toggleSFX.addEventListener("click", () => {
+    const isMuted = soundEffects.every(sfx => sfx.volume === 0);
+    if (isMuted) {
+      soundEffects.forEach(sfx => sfx.volume = parseFloat(sfxSlider.value || 1));
+      toggleSFX.textContent = "Mute";
+    } else {
+      soundEffects.forEach(sfx => sfx.volume = 0);
+      toggleSFX.textContent = "Unmute";
+      sfxSlider.value = 0;
+    }
+  });
+  //Set init volumes
+  bgMusic.volume = parseFloat(bgSlider.value);
+  soundEffects.forEach(sfx => sfx.volume = parseFloat(sfxSlider.value));
 </script>
 </body>
 </html>
 
-<!--- PLAY AGAIN BUTTON NOT WOKRING - GAME FEATURE IS BUGGY 
-EMOTIONAL STATES NOT CHANGING, THEY UPDATE ON TERMINAL BUT NOT UI-->
