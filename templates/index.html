@@ -258,44 +258,47 @@
   <audio id="correctSound" src="/static/correct.wav" preload="auto"></audio>
   
 <script>
-  let sparkleInterval = null;
-  let petName = "Your pet";
+  let sparkleInterval = null; // Timer for sparkles when pet is happy
+  let currentMusic = ""; // Track current background music path
+  let petName = "Your pet"; // Default pet name
 
-  function showNameModal() {
-    document.getElementById("nameInput").value = "";
-    document.getElementById("nameModal").style.display = "flex";
+  function showNameModal() { 
+    document.getElementById("nameInput").value = ""; // Clear name field
+    document.getElementById("nameModal").style.display = "flex"; // Show modal
   }
 
-  function hideModal() {
+  function hideModal() { // Save pet name and close modal
   localStorage.setItem("petNameConfirmed", "true");
   localStorage.setItem("savedPetName", petName);
   document.getElementById("nameModal").style.display = "none";
-  triggerAutoplay(); //Ensure music starts on continue
+  triggerAutoplay(); // Starts music when modal closes 
 }
 
-async function showRename() {
-  await fetch('/action/revive');
-  localStorage.removeItem("petNameConfirmed");
+async function showRename() { 
+  await fetch('/action/revive'); // Reset pet on backend
+  localStorage.removeItem("petNameConfirmed"); // Clear saved name
   document.getElementById("renameForm").style.display = "block";
   document.getElementById("welcomeBack").style.display = "none";
-  showNameModal();
-  triggerAutoplay(); // Ensure music starts on rename
+  showNameModal(); // Open naming modal
+  triggerAutoplay(); // Restarts music 
 }
 
   // Setting the pet's name option 
   async function submitName() {
     const input = document.getElementById("nameInput");
-    petName = input.value.trim() || "Your pet";
+    petName = input.value.trim() || "Your pet"; // Set name or fallback
     document.getElementById("petName").textContent = petName;
     document.getElementById("nameModal").style.display = "none";
-    localStorage.setItem("petNameConfirmed", "true");
+    localStorage.setItem("petNameConfirmed", "true"); // Save name locally
     localStorage.setItem("savedPetName", petName); // Save pet name for use in autoplay logic
 
+    // Start music
     const music = document.getElementById("bgMusic");
     music.muted = false;
     music.volume = 0.4;
     try { await music.play(); } catch (err) { console.warn("Autoplay blocked:", err); }
 
+    // Send name to backend
     await fetch('/action/name', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -304,9 +307,10 @@ async function showRename() {
   }
 
   async function updatePetState() {
-    const res = await fetch('/pet_state');
+    const res = await fetch('/pet_state'); // Get latest state
     const data = await res.json();
 
+    // Update DOM
     const petImage = document.getElementById("petImage");
     const emotionText = document.getElementById("emotion");
     const nameText = document.getElementById("petName");
@@ -319,12 +323,13 @@ async function showRename() {
     nameText.textContent = petName;
     petImage.className = `pet ${data.emotion}`;
 
+    // Stop crying sound unless sad/lonely
     const crySound = document.getElementById("crySound");
     if (!["lonely", "sad"].includes(data.emotion)) {
       crySound.pause();
       crySound.currentTime = 0;
     }
-
+    // Sparkles & game button if happy
     if (data.emotion === "happy") {
       if (!sparkleInterval) sparkleInterval = setInterval(createSparkle, 500);
       document.getElementById("gameButtons").style.display = "block";
@@ -386,16 +391,17 @@ async function showRename() {
     const res = await fetch("/game_feedback");
     const data = await res.json();
 
-    if (data.result === "correct") {
+    if (data.result === "correct") { // Play success audio
       document.getElementById("correctSound").play();
-      const text = document.getElementById("hideSeekText");
+      const text = document.getElementById("hideSeekText"); // Update UI to show win
       text.innerHTML = `<span style="font-size: 3rem; color: green;">✅</span> You found ${petName}! 🎉`;
 
-      const petImage = document.getElementById("petImage");
+      const petImage = document.getElementById("petImage"); // Reveal pet
       petImage.classList.remove("hidden");
       petImage.style.transform = "translateX(0)";
       petImage.style.animation = "popIn 0.6s ease-in-out";
 
+      // Replace game UI with replay buttons
       const hideSeek = document.getElementById("hideSeekButtons");
       hideSeek.innerHTML = `
         <p id="hideSeekText"><span style="font-size: 3rem; color: green;">✅</span> You found ${petName}! 🎉</p>
@@ -407,14 +413,14 @@ async function showRename() {
       clearInterval(feedbackInterval);
       feedbackInterval = null;
     } else if (data.result === "wrong") {
-      document.getElementById("wrongSound").play();
+      document.getElementById("wrongSound").play(); // Play failure audio
       const text = document.getElementById("hideSeekText");
       text.innerHTML = `<span style="font-size: 3rem; color: red;">❌</span> Not there! Try another room.`;
       // Do not clear the interval here!
     }
   }
 
-  let feedbackInterval = null;
+  let feedbackInterval = null; // loop that checks if player guessed the pet's room yet
 
   async function startHideSeek() {
     const petImage = document.getElementById("petImage");
@@ -432,24 +438,24 @@ async function showRename() {
     hideSeek.style.display = "block";
     document.getElementById("hideSeekText").textContent = `${petName} is playing hide and seek!`;
 
-    // Start polling for results — regardless of Play Again
+    // Start checking every sec for correct/incorrect guess
     if (!feedbackInterval) {
     feedbackInterval = setInterval(checkFeedback, 1000);
     }
   }
 
   async function guessRoom(room) {
-    const res = await fetch(`/guess_room?room=${room}`);
+    const res = await fetch(`/guess_room?room=${room}`); 
     const result = await res.json();
 
     const petImage = document.getElementById("petImage");
     const text = document.getElementById("hideSeekText");
     const hideSeek = document.getElementById("hideSeekButtons");
 
-    if (result.message.includes("found")) {
+    if (result.message.includes("found")) { // correct room guess
       document.getElementById("correctSound").play();
       text.innerHTML = `<span style="font-size: 3rem; color: green;">✅</span> You found ${petName}! 🎉`;
-
+      // Bring pet back on screen with animation
       petImage.classList.remove("hidden");
       petImage.style.transform = "translateX(0)";
       petImage.style.animation = "popIn 0.6s ease-in-out";
@@ -461,13 +467,13 @@ async function showRename() {
         <button onclick="exitGame()">Exit Game</button>
       `;
 
-    } else {
+    } else { // wrong guess
       document.getElementById("wrongSound").play();
       text.innerHTML = `<span style="font-size: 3rem; color: red;">❌</span> Not there! Try another room.`;
     }
   }
 
-  // Play again option for the user  
+  //Reset game layout and restart hide n seek  
   function playAgain() {
     const hideSeek = document.getElementById("hideSeekButtons");
 
@@ -479,67 +485,69 @@ async function showRename() {
       <button onclick="guessRoom('front')">Front Porch</button>
     `;
 
-    startHideSeek(); //polling will now start inside here
+    startHideSeek(); // Restarts the loop + hides pet
   }
-  
+  // Exit hide and seek mode fully
+  // Reset UI for next time
   function exitGame() {
     const hideSeek = document.getElementById("hideSeekButtons");
     hideSeek.style.display = "none";
-    hideSeek.innerHTML = `
+    hideSeek.innerHTML = ` 
       <p id="hideSeekText">${petName} is playing hide and seek! Can you find them?</p>
       <button onclick="guessRoom('bedroom')">Bedroom</button>
       <button onclick="guessRoom('living')">Living Room</button>
       <button onclick="guessRoom('bathroom')">Bathroom</button>
       <button onclick="guessRoom('front')">Front Porch</button>
     `;
-    updatePetState();
-    clearInterval(feedbackInterval);
+    updatePetState(); // Go back to normal pet stuff
+    clearInterval(feedbackInterval); // stop the loop
     feedbackInterval = null;
   }
-
+  // Sends a heal action to Flask
   async function sendHeal() { await fetch('/action/heal'); updatePetState(); }
 
+  // Sends a feed request (includes logs for debug)
   async function sendFeed() {
   console.log("📡 Sending feed request to /action/feed");
   const res = await fetch('/action/feed');
   console.log("✅ Feed response status:", res.status);
   updatePetState();
 }
-
+  // Sends a pet interaction and handles effects
   async function sendPet() {
-    const before = await (await fetch('/pet_state')).json();
+    const before = await (await fetch('/pet_state')).json(); // emotion before pet
     await fetch('/action/pet');
-    const after = await (await fetch('/pet_state')).json();
-    const petImage = document.getElementById("petImage");
-
+    const after = await (await fetch('/pet_state')).json(); // emotion after pet
+    const petImage = document.getElementById("petImage"); 
+    // if it was already happy, do happy animation and sound
     if (before.emotion === "happy" && after.emotion === "happy") {
       petImage.classList.add("excited");
       document.getElementById("happySound")?.play();
       setTimeout(() => petImage.classList.remove("excited"), 600);
     }
     const crySound = document.getElementById("crySound");
-    if (["lonely", "sad"].includes(before.emotion) && after.emotion !== "happy") {
+    if (["lonely", "sad"].includes(before.emotion) && after.emotion !== "happy") { // lonely/sad crying
       crySound.play();
     } else {
       crySound.pause();
       crySound.currentTime = 0;
     }
-    if (before.emotion === "hungry" && after.emotion === "hungry") {
+    if (before.emotion === "hungry" && after.emotion === "hungry") { // hungry growl
       document.getElementById("growlSound").play();
     }
 
     updatePetState();
   }
-
+  // Shows sparkles if pet is happy
   function createSparkle() {
     const sparkle = document.createElement("div");
     sparkle.classList.add("sparkle");
     sparkle.style.left = `${Math.random() * 200 - 100}px`;
     sparkle.style.top = `${Math.random() * -30}px`;
     document.getElementById("sparkles").appendChild(sparkle);
-    setTimeout(() => sparkle.remove(), 1000);
+    setTimeout(() => sparkle.remove(), 1000); //Disappears after 1 sec
   }
-  function updateTearEffect(emotion) {
+  function updateTearEffect(emotion) { // Makes little tears appear for sad/lonely
     const container = document.getElementById("tearContainer");
     container.innerHTML = ""; // Clear previous
 
@@ -561,8 +569,8 @@ async function showRename() {
       tearLeft.className = "tear";
       tearRight.className = "tear";
 
-      tearLeft.style.left = "-10px";  // offset from center
-      tearRight.style.left = "10px";
+      tearLeft.style.left = "-10px";  // Offset left side
+      tearRight.style.left = "10px"; // offset right side
 
       container.appendChild(tearLeft);
       container.appendChild(tearRight);
@@ -592,20 +600,30 @@ async function showRename() {
     return hour < 7 || hour > 18 ? "night" : "day";
   }
 
-  function updateBackgroundMusic(emotion) { // BG Music 
+  function updateBackgroundMusic(emotion) {
     const music = document.getElementById("bgMusic");
-    let src = "";
-    if (emotion === "happy") src = "/static/happy.mp3";
-    else if (["sad", "sick", "lonely"].includes(emotion)) src = "/static/sad.wav";
-    else if (emotion === "hungry") src = "/static/hungry.wav";
-    else if (emotion === "dead") src = "/static/dead.wav";
-    else if (emotion === "scared") src = "/static/scared.mp3";
+    if (!music) return;
 
-    if (!music.src.includes(src)) {
-      music.src = src;
-      music.play().catch(() => {});
+    let newSrc = "";
+    if (emotion === "happy") newSrc = "/static/happy.mp3";
+    else if (["sad", "sick", "lonely"].includes(emotion)) newSrc = "/static/sad.wav";
+    else if (emotion === "hungry") newSrc = "/static/hungry.wav";
+    else if (emotion === "dead") newSrc = "/static/dead.wav";
+    else if (emotion === "scared") newSrc = "/static/scared.mp3";
+
+    // Only update if it's a new track
+    if (currentMusic !== newSrc) {
+        music.pause();           // stop any previous audio
+      music.src = newSrc;
+      currentMusic = newSrc;
+
+      music.volume = parseFloat(document.getElementById("bgVolume")?.value || 0.4);
+      if (!music.muted) {
+        music.play().catch(err => console.warn("Autoplay blocked:", err));
+      }
     }
   }
+
 
   async function revivePet() {  
     await fetch('/action/revive');
@@ -623,35 +641,53 @@ async function showRename() {
   document.getElementById("petImage").addEventListener("mouseover", sendPet);
 
   window.addEventListener("DOMContentLoaded", async () => {
-  const res = await fetch('/pet_state');
-  const data = await res.json();
-  petName = data.name || "Your pet"; // update the global petName
-  const emotion = data.emotion?.toLowerCase?.();
-  const confirmed = localStorage.getItem("petNameConfirmed");
-  const shouldPrompt = !confirmed || petName === "Your pet";
-  document.getElementById("bgVolume").addEventListener("input", triggerAutoplay, { once: true });
-  document.body.style.backgroundImage = `url('${data.background_image}')`;
-  document.getElementById("themeDropdown").value = data.bg_theme;
+    const res = await fetch('/pet_state');
+    const data = await res.json();
+    petName = data.name || "Your pet"; // update the global petName
+    const emotion = data.emotion?.toLowerCase?.();
+    const confirmed = localStorage.getItem("petNameConfirmed");
+    const shouldPrompt = !confirmed || petName === "Your pet";
+    document.getElementById("bgVolume").addEventListener("input", triggerAutoplay, { once: true });
+    document.body.style.backgroundImage = `url('${data.background_image}')`;
+    document.getElementById("themeDropdown").value = data.bg_theme;
 
-  if (shouldPrompt) {
-    document.getElementById("savedName").textContent = petName;
-    document.getElementById("nameModal").style.display = "flex";
-    if (emotion === "dead") {
-      document.getElementById("welcomeBack").style.display = "none";
-      document.getElementById("renameForm").style.display = "block";
-    } else {
-      document.getElementById("welcomeBack").style.display = "block";
-      document.getElementById("renameForm").style.display = "none";
+    if (shouldPrompt) {
+      document.getElementById("savedName").textContent = petName;
+      document.getElementById("nameModal").style.display = "flex";
+      if (emotion === "dead") {
+        document.getElementById("welcomeBack").style.display = "none";
+        document.getElementById("renameForm").style.display = "block";
+      } else {
+        document.getElementById("welcomeBack").style.display = "block";
+        document.getElementById("renameForm").style.display = "none";
+      }
     }
-  }
-});
+  });
 
-function triggerAutoplay() {
-  const bgMusic = document.getElementById("bgMusic") || {};
-  bgMusic.muted = false;
-  bgMusic.volume = parseFloat(document.getElementById("bgVolume")?.value || 0.4);
-  bgMusic.play?.().catch(err => console.warn("Autoplay blocked:", err));
-}
+  function triggerAutoplay() {
+    const bgMusic = document.getElementById("bgMusic");
+    const bgSlider = document.getElementById("bgVolume");
+
+    if (!bgMusic) return;
+
+    // Set volume based on slider, but don’t force play if already playing
+    const desiredVolume = parseFloat(bgSlider?.value || 0.4);
+
+    // If it's already playing, just ensure it's not muted and volume is correct
+    if (!bgMusic.paused && !bgMusic.ended) {
+      bgMusic.volume = desiredVolume;
+      bgMusic.muted = false;
+      return;
+    }
+
+    // Not playing yet -> try to play and handle mute/autoplay errors
+    bgMusic.volume = desiredVolume;
+    bgMusic.muted = false;
+    bgMusic.play().catch(err => {
+      console.warn("Autoplay blocked:", err);
+    });
+  }
+
   window.addEventListener("click", async () => {
     const confirmed = localStorage.getItem("petNameConfirmed");
     const storedName = localStorage.getItem("savedPetName");
@@ -671,21 +707,22 @@ function triggerAutoplay() {
   const bgSlider = document.getElementById("bgVolume");
   const toggleMusic = document.getElementById("toggleMusic");
 
+    // Volume slider for background music - if slider hits 0, mute it
   bgSlider.addEventListener("input", () => {
    bgMusic.volume = parseFloat(bgSlider.value);
   if (bgMusic.volume === 0) {
-      toggleMusic.textContent = "Unmute";
+      toggleMusic.textContent = "Unmute"; // Button says "Unmute" if slider's at 0
       bgMusic.muted = true;
   } else {
-    toggleMusic.textContent = "Mute";
+    toggleMusic.textContent = "Mute"; // Otherwise it's normal
     bgMusic.muted = false;
   }
   });
-
+ // Clicking the "Mute" button toggles mute and updates the slider
   toggleMusic.addEventListener("click", () => {
     bgMusic.muted = !bgMusic.muted;
     toggleMusic.textContent = bgMusic.muted ? "Unmute" : "Mute";
-    bgSlider.value = bgMusic.muted ? 0 : bgMusic.volume || 0.4;
+    bgSlider.value = bgMusic.muted ? 0 : bgMusic.volume || 0.4; // Reset slider if unmuted
   });
 
   //Vol slider + toggle logic for sound effects
@@ -701,12 +738,14 @@ function triggerAutoplay() {
   "correctSound"
   ].map(id => document.getElementById(id));
 
+  // SFX slider changes volume for all sounds
   sfxSlider.addEventListener("input", () => {
     const vol = parseFloat(sfxSlider.value);
     soundEffects.forEach(sfx => sfx.volume = vol);
     toggleSFX.textContent = vol === 0 ? "Unmute" : "Mute";
   });
 
+  // Button toggles mute/unmute for all SFX
   toggleSFX.addEventListener("click", () => {
     const isMuted = soundEffects.every(sfx => sfx.volume === 0);
     if (isMuted) {
@@ -718,7 +757,7 @@ function triggerAutoplay() {
       sfxSlider.value = 0;
     }
   });
-  //Set init volumes
+  // On page load, set init volumes
   bgMusic.volume = parseFloat(bgSlider.value);
   soundEffects.forEach(sfx => sfx.volume = parseFloat(sfxSlider.value));
 </script>
