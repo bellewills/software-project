@@ -229,6 +229,7 @@
       <button onclick="submitName()">Start</button>
     </div>
   </div>
+  <p id="hint-box" style="color:#dce3f0; text-align:center; font-size:1.1em; display:none;"></p>
 
   <div id="petSection">
     <h1><span id="petName">Your pet</span> is feeling: <span id="emotion">loading...</span></h1>
@@ -371,7 +372,12 @@ async function showRename() {
     } else {
       actionButtons.style.display = "none";
     }
-
+    // Show hint text from backend
+    const hintBox = document.getElementById("hint-box");
+    if (hintBox && data.hint !== undefined) {
+      hintBox.textContent = data.hint;
+      hintBox.style.display = data.hint ? "block" : "none";
+    }
     updateBackgroundMusic(data.emotion);
     console.log("Current Emotion:", data.emotion);
 

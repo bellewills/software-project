@@ -242,7 +242,7 @@ def on_message(client, userdata, msg):
             print("❌ Wrong room.")
             game_feedback_msg = "wrong"
 
-        return  #Don't update state or scare pet after a hide-and-seek guess
+        return  #Don't update state or scare pet after a hide n seek guess
 
     # --- NORMAL PET INTERACTIONS ---
     if house == "middle" and room == "bedroom" and component == "button" and msg_value == "pressed":
