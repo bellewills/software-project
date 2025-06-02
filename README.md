@@ -95,6 +95,8 @@ Press F = Feed
 
 Press T = Simulate high temp (scared)
 
+When interacting with the pet, make sure to click the correct button (either in the UI or on the IoT house) or wave your hand in front of the motion sensor. Keep interacting until the pet’s hunger, sickness, or loneliness levels decrease — the pet will visibly change once it’s satisfied.
+
 Game Mode Behaviour: While in Hide and Seek mode, the pet won’t become sad, scared, or hungry. Sensor inputs are used purely as guesses and won’t affect its emotional state.
 
 ## Credits
