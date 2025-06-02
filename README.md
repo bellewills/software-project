@@ -1,7 +1,9 @@
-#Virtual Pet IoT Project
+# Virtual Pet IoT Project  
+
+## Overview 
 This is a browser-based Virtual Pet that lives inside a physical IoT house. Users must care for the pet by feeding, petting, and healing it using live sensor input from the house. The pet responds emotionally in real time and includes a mini hide-and-seek game for added interactivity.
 
-How It Works
+## How It Works
 The project uses a Raspberry Pi in a custom-built IoT house.
 
 Data from motion sensors, LEDs, a button, and a fan is published via MQTT and handled by a Flask backend.
@@ -10,7 +12,8 @@ The backend maintains the pet’s emotional state using a state machine (happy, 
 
 The frontend reflects these states through dynamic visuals, sound effects, and background music.
 
-How to Run
+## How to Run
+
 1. Run the Flask App
 python app.py
 Then open your browser and go to http://localhost:5000
@@ -48,7 +51,8 @@ Front Porch → Trigger outdoor motion
 
 Guesses use IoT actions only — the pet won’t get scared or sad during the game.
 
-Features
+## Features
+
 Custom pixel-art pet images with animated states
 
 Emotion-based music and SFX (autoplay fixed)
@@ -72,14 +76,15 @@ MQTT via paho-mqtt
 
 IOT House 
 
-Credits
-Code: Belle Williams (lead dev), Keya Datta (UI / Design and documentation)
+## Credits
+
+##### Code: Belle Williams (lead dev), Keya Datta (UI / Design and documentation)
 
 Background art (AI-generated): via ChatGPT
 
 Pet design / Character: Belle Williams & Keya Datta
 
-Sound effects:
+##### Sound effects:
 
 Freesound.org
 
