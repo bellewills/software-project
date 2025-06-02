@@ -4,21 +4,18 @@
 This is a browser-based Virtual Pet that lives inside a physical IoT house. Users must care for the pet by feeding, petting, and healing it using live sensor input from the house. The pet responds emotionally in real time and includes a mini hide-and-seek game for added interactivity.
 
 ## How It Works
-The project uses a Raspberry Pi in a custom-built IoT house.
-
-Data from motion sensors, LEDs, a button, and a fan is published via MQTT and handled by a Flask backend.
-
-The backend maintains the pet’s emotional state using a state machine (happy, sad, scared, hungry, sick, lonely, dead).
-
-The frontend reflects these states through dynamic visuals, sound effects, and background music.
+- The pet lives in a virtual UI but responds to actions taken in a real, physical IoT house.
+- The house contains sensors (motion, LEDs, fan, button) that send messages using MQTT.
+- A Python backend (Flask) handles these messages and updates the pet's emotional state using a **state machine**.
+- The browser-based UI shows how the pet feels with animations, music, and sound effects.
 
 ## How to Run
 
 1. Run the Flask App
-python app.py
+In terminal, in the correct cd / file path run: python app.py
 Then open your browser and go to http://localhost:5000
 
-2. Open MQTT Explorer
+3. Open MQTT Explorer
 Connect to: mqtt.cci.arts.ac.uk
 - Make sure you are on the same network the IOT house is on for first time connecting. - 
 
@@ -75,6 +72,30 @@ HTML/CSS
 MQTT via paho-mqtt
 
 IOT House 
+
+## Notes:
+
+Browser Audio Restrictions: Most browsers (especially Chrome and Safari) block autoplay of sound or music until the user interacts with the page. You may need to interact with the UI (e.g. naming or renaming your pet, adjusting the volume sliders, or selecting a home theme) before any music or sound effects will start playing.
+
+First-Time MQTT Setup: Make sure your device is connected to the same Wi-Fi network as the IoT house. If MQTT Explorer doesn’t show data, double-check your connection and topic subscription.
+
+Mock Data for Testing: You can manually send MQTT payloads to test pet state changes. For example:
+
+To simulate overheating (scared state), send a high temperature payload like { "temp": 35 }.
+
+To heal or interact with the pet, publish other mock values matching your expected sensor inputs (e.g. motion: true, fan: on).
+
+Use topic: sandbox/fromMiddleHouse and ensure JSON format matches what the Flask backend expects.
+
+Offline Testing Shortcuts: If you don’t have access to the physical IoT house, use the UI buttons or keyboard shortcuts:
+
+Press H = Heal
+
+Press F = Feed
+
+Press T = Simulate high temp (scared)
+
+Game Mode Behaviour: While in Hide and Seek mode, the pet won’t become sad, scared, or hungry. Sensor inputs are used purely as guesses and won’t affect its emotional state.
 
 ## Credits
 
