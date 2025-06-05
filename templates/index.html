@@ -4,6 +4,7 @@
   <title>My Virtual Pet</title>
   <link rel="icon" href="data:,">
   <style>
+     /* Reset + base layout */
     html, body {
       margin: 0;
       padding: 0;
@@ -13,6 +14,7 @@
       background: linear-gradient(to bottom, #fdf6e3, #ffe4e1);
       overflow: hidden;
     }
+    /* Style for labels and dropdowns */
     label {
     color: #dce3f0;
     font-weight: bold;
@@ -23,7 +25,7 @@
       border-radius: 6px;
       padding: 4px;
     }
-
+    /* Centre the main layout */
     body {
       display: flex;
       flex-direction: column;
@@ -32,7 +34,7 @@
       text-align: center;
       position: relative;
     }
-
+    /* Top bar with theme + audio controls + rename */
     #topControls {
       position: absolute;
       top: 10px;
@@ -43,42 +45,42 @@
       padding: 0 20px;
       z-index: 10;
     }
-
+    /* Left side of top bar – theme dropdown */
     #themeSelector {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-
+    /* Right side of top bar – volume + mute controls */
     #audioControls {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 8px;
     }
-
+    /* Main pet container section */
     #petSection {
       display: flex;
       flex-direction: column;
       align-items: center;
       margin-top: 80px;
     }
-
+    /* Pet name and emotion title */
     h1 {
       font-size: 2rem;
       margin-bottom: 1rem;
     }
-
+    /* Wrapper holds pet image + overlays (tears, sparkles) */
     #petWrapper {
       position: relative;
       display: inline-block;
     }
-
+    /* Pet image styling */
     #petImage {
       width: 200px;
       image-rendering: pixelated;
     }
-
+    /* Container for tears when sad/sick */
     #tearContainer {
       position: absolute;
       top: 50px;
@@ -87,7 +89,7 @@
       pointer-events: none;
       z-index: 5;
     }
-
+    /* Each animated tear */
     .tear {
       width: 8px;
       height: 14px;
@@ -96,12 +98,12 @@
       position: absolute;
       animation: fallTear 1.2s linear forwards;
     }
-
+    /* Falling tear animation */
     @keyframes fallTear {
       0% { transform: translateY(0); opacity: 1; }
       100% { transform: translateY(60px); opacity: 0; }
     }
-
+    /* Sparkles for happy emotion */
     #sparkles {
       position: absolute;
       top: 50%;
@@ -118,12 +120,12 @@
       border-radius: 50%;
       animation: sparkleAnim 1s linear forwards;
     }
-
+    /* Sparkle movement */
     @keyframes sparkleAnim {
       0% { opacity: 1; transform: translateY(0) scale(1); }
       100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
     }
-
+    /* Animations for different pet emotions */
     .excited { animation: excitedHappy 0.6s ease-in-out !important; }
     .pet.happy  { animation: bounce 1s infinite alternate ease-in-out !important; } 
     .pet.scared { animation: shakeScared 0.5s infinite ease-in-out !important; }
@@ -132,6 +134,7 @@
     .pet.hungry { animation: wiggleHungry 1s infinite ease-in-out !important; }
     .pet.dead   { opacity: 0.3; animation: none !important; }
 
+    /* Animations defined below */
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
     @keyframes shakeScared { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
     @keyframes fadeSick { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
@@ -142,11 +145,11 @@
     .hidden {
       visibility: hidden;
     }
-
+    /* Buttons for actions and games */
     #actionButtons, #gameButtons, #hideSeekButtons {
       margin-top: 20px;
     }
-
+    /* Styling for all main buttons */
     #actionButtons button, #gameButtons button, #hideSeekButtons button, #renameBtn {
       margin: 0 10px;
       padding: 10px 15px;
@@ -157,11 +160,11 @@
       color: white;
       cursor: pointer;
     }
-
+    /* Hover effect on buttons */
     #actionButtons button:hover, #gameButtons button:hover, #hideSeekButtons button:hover, #renameBtn:hover {
       background-color: #f67280;
     }
-
+    /* Modal for renaming pet */
     #nameModal {
       position: absolute;
       top: 0; left: 0;
@@ -173,7 +176,7 @@
       align-items: center;
       z-index: 10;
     }
-
+    /* Rename form styling */
     #renameForm input {
       padding: 8px;
       border: 1px solid #ccc;
@@ -187,7 +190,7 @@
   </style>
 </head>
 <body>
-
+  <!-- Top controls: theme select + rename + audio -->
   <div id="topControls">
     <div id="themeSelector">
       <label for="themeDropdown">🏠 Choose Your Home:</label>
@@ -197,12 +200,13 @@
         <option value="mountain">Cosy Mountainside</option>
       </select>
     </div>
+    <!-- Rename button (top centre) -->
     <div style="position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 10;">
     <button onclick="showNameModal()" style="padding: 10px 15px; background-color: #ff9a9e; color: white; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer;">
      Rename ✏️
     </button>
     </div>
-
+    <!-- Volume + mute controls -->
     <div id="audioControls">
       <div>
         <label for="bgVolume">🎼 Music Volume</label>
@@ -216,7 +220,7 @@
       </div>
     </div>
   </div>
-
+  <!-- Modal for naming or renaming your pet -->
   <div id="nameModal">
     <div id="welcomeBack" style="display: none;">
       <h2>Welcome back! Continue with <span id="savedName"></span>?</h2>
@@ -229,19 +233,24 @@
       <button onclick="submitName()">Start</button>
     </div>
   </div>
+  <!-- Optional hint box for advice -->
   <p id="hint-box" style="color:#dce3f0; text-align:center; font-size:1.1em; display:none;"></p>
-
+  <!-- Main pet section with emotion and image -->
   <div id="petSection">
     <h1><span id="petName">Your pet</span> is feeling: <span id="emotion">loading...</span></h1>
+    <!-- Pet image + overlays -->
     <div id="petWrapper">
       <img id="petImage" src="/static/pet_happy.png" alt="Pet Image">
       <div id="tearContainer"></div>
       <div id="sparkles"></div>
     </div>
+    <!-- Buttons for actions like feed/heal -->
     <div id="actionButtons" style="display: none;"></div>
+    <!-- Button to start mini game -->
     <div id="gameButtons" style="display: none;">
       <button onclick="startHideSeek()">🎮 Play a Game</button>
     </div>
+    <!-- Hide-and-seek guess buttons -->
     <div id="hideSeekButtons" style="display: none;">
       <p id="hideSeekText">Your pet is playing hide and seek!</p>
       <button onclick="guessRoom('bedroom')">Bedroom</button>
@@ -250,6 +259,7 @@
       <button onclick="guessRoom('front')">Front Porch</button>
     </div>
   </div>
+  <!-- Audio elements for sound effects + bg music -->
   <audio id="happySound" src="/static/squeak.mp3" preload="auto"></audio>
   <audio id="bgMusic" loop autoplay muted></audio>
   <audio id="crySound" src="/static/cry.wav" preload="auto"></audio>
